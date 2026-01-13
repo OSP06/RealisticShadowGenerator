@@ -4,6 +4,7 @@
 
 import { ShadowGenerator } from '../lib/core/ShadowGenerator';
 import { ImageProcessor } from '../lib/core/ImageProcessor';
+import { BackgroundRemover } from '../lib/core/BackgroundRemover';
 import type { ImageSet, ShadowConfig } from '../lib/core/types';
 
 class DemoApp {
@@ -32,11 +33,15 @@ class DemoApp {
   private foregroundPreview: HTMLCanvasElement;
   private backgroundPreview: HTMLCanvasElement;
   private depthmapPreview: HTMLCanvasElement;
+  private removeBackgroundToggle: HTMLInputElement;
+  private backgroundRemover: BackgroundRemover;
+  private removeBackgroundEnabled: boolean = false;
 
   constructor() {
     // Initialize library components
     this.generator = new ShadowGenerator();
     this.imageProcessor = new ImageProcessor();
+    this.backgroundRemover = new BackgroundRemover();
 
     // Get UI elements
     this.foregroundInput = document.getElementById('foreground') as HTMLInputElement;
@@ -55,6 +60,7 @@ class DemoApp {
     this.foregroundPreview = document.getElementById('foregroundPreview') as HTMLCanvasElement;
     this.backgroundPreview = document.getElementById('backgroundPreview') as HTMLCanvasElement;
     this.depthmapPreview = document.getElementById('depthmapPreview') as HTMLCanvasElement;
+    this.removeBackgroundToggle = document.getElementById('removeBackgroundToggle') as HTMLInputElement;
 
     this.setupEventListeners();
   }
@@ -64,6 +70,23 @@ class DemoApp {
     this.foregroundInput.addEventListener('change', () => this.handleImageUpload('foreground'));
     this.backgroundInput.addEventListener('change', () => this.handleImageUpload('background'));
     this.depthMapInput.addEventListener('change', () => this.handleImageUpload('depthmap'));
+
+    // Background removal toggle
+    this.removeBackgroundToggle.addEventListener('change', () => {
+      this.removeBackgroundEnabled = this.removeBackgroundToggle.checked;
+      const infoDiv = document.getElementById('bgRemovalInfo');
+      if (infoDiv) {
+        infoDiv.style.display = this.removeBackgroundEnabled ? 'block' : 'none';
+      }
+
+      // Optional: Preload model when enabled to reduce first-use latency
+      if (this.removeBackgroundEnabled && !this.backgroundRemover.modelLoaded) {
+        this.showStatus('Preloading background removal model...', 'info');
+        this.backgroundRemover.preloadModel()
+          .then(() => this.showStatus('Model ready!', 'success'))
+          .catch((err) => this.showStatus(`Model load failed: ${err}`, 'error'));
+      }
+    });
 
     // Parameter slider handlers
     this.lightAngleSlider.addEventListener('input', () => {
@@ -122,10 +145,31 @@ class DemoApp {
       console.log(`[${type}] Starting load - File size: ${fileSizeMB}MB`);
 
       const loadStart = performance.now();
-      const imageData = await this.imageProcessor.loadFromFile(file);
+      let imageData = await this.imageProcessor.loadFromFile(file);
       const loadEnd = performance.now();
 
       console.log(`[${type}] Load completed in ${((loadEnd - loadStart) / 1000).toFixed(2)}s - Dimensions: ${imageData.width}x${imageData.height}`);
+
+      // Auto-remove background for foreground images if enabled
+      if (type === 'foreground' && this.removeBackgroundEnabled) {
+        this.showStatus('Removing background...', 'info');
+        const bgRemovalStart = performance.now();
+
+        try {
+          imageData = await this.backgroundRemover.removeBackground(imageData, {
+            progress: (stage, progress) => {
+              this.showStatus(`${stage}: ${Math.round(progress * 100)}%`, 'info');
+            }
+          });
+
+          const bgRemovalEnd = performance.now();
+          console.log(`[${type}] Background removal completed in ${((bgRemovalEnd - bgRemovalStart) / 1000).toFixed(2)}s`);
+        } catch (error) {
+          console.error('Background removal failed:', error);
+          this.showStatus('Background removal failed. Using original image.', 'error');
+          // Continue with original imageData
+        }
+      }
 
       switch (type) {
         case 'foreground':

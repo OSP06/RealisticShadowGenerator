@@ -10,6 +10,8 @@ export { ShadowGenerator } from './lib/core/ShadowGenerator';
 
 // Image processing utilities
 export { ImageProcessor } from './lib/core/ImageProcessor';
+export { BackgroundRemover } from './lib/core/BackgroundRemover';
+export type { BackgroundRemovalOptions } from './lib/core/BackgroundRemover';
 
 // Core types
 export type {

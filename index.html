@@ -263,6 +263,15 @@
       color: #666;
       font-size: 12px;
     }
+
+    .info-text {
+      font-size: 11px;
+      color: #888;
+      margin-top: 5px;
+      padding: 5px 10px;
+      background: #1a1a1a;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body>
@@ -294,6 +303,15 @@
             <input type="file" id="depthmap" accept="image/*">
             <div class="preview-container">
               <canvas id="depthmapPreview"></canvas>
+            </div>
+          </div>
+          <div class="control-item">
+            <label>
+              <input type="checkbox" id="removeBackgroundToggle">
+              Auto-Remove Background (Foreground only)
+            </label>
+            <div id="bgRemovalInfo" class="info-text" style="display: none;">
+              Processing time: ~5-10 seconds per image. First use downloads ML model (~40MB).
             </div>
           </div>
         </div>

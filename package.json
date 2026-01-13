@@ -10,12 +10,20 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "keywords": ["shadow", "image-processing", "compositing", "canvas"],
+  "keywords": [
+    "shadow",
+    "image-processing",
+    "compositing",
+    "canvas"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^25.0.7",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@imgly/background-removal": "^1.7.0"
   }
 }
