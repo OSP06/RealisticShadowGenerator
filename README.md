@@ -1,6 +1,6 @@
 # Realistic Shadow Generator
 
-A TypeScript library for generating realistic projected shadows for image compositing using HTML Canvas pixel trail.
+A TypeScript library for generating realistic projected shadows for image compositing using HTML Canvas pixel manipulation.
 
 ## Features
 
